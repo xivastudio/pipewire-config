@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=PipeWire Config
+Exec=pipewire-config
+Icon=pipewire
+StartupNotify=true
+Terminal=false
+Categories=Audio;AudioVideo;Midi;X-Alsa;X-Jack;Qt;
+Comment=simples interface de configuração de sample rate e frame period
+X-Window-Icon=pipewire

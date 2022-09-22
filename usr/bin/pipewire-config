@@ -1,0 +1,99 @@
+#!/bin/bash
+
+##descobre com a Distro
+#distro=$(lsb_release -si)
+#
+##se for manjaro
+#if [ -n "$(echo $distro | grep -i manjaro)" ]; then
+#    #descobrir se o zenity está instalado
+#    zenityinstall=$(pacman -Q | grep zenity)
+#    #se não estiver instalado, instalar
+#    if [ -z "$zenityinstall" ]; then
+#        pamac install --no-upgrade --no-confirm zenity
+#    fi
+##se for ubuntu ou mint
+#elif [ -n "$(echo $distro | egrep -i "ubuntu|mint")" ]; then
+#    #descobrir se o zenity está instalado
+#    zenityinstall=$(dpkg -l | grep zenity)
+#    #se não estiver instalado, instalar
+#    if [ -z "$zenityinstall" ]; then
+#    pkexec env DISPLAY=$DISPLAY XAUTHORITY=$XAUTHORITY apt install zenity -y
+#    fi
+#fi
+
+#pasta de configuração do pipewire
+pipewiredir=$HOME/.config/pipewire
+
+#copiar os arquivos de config p/ $HOME/.config/pipewire
+#caso não exista o diretorio, criar
+test -d pepiwiredir || mkdir -p $pipewiredir
+cp -rn /usr/share/pipewire/* ~/.config/pipewire/
+
+
+#arquivos de configuração
+pipewireconf=$pipewiredir/pipewire.conf
+jackconf=$pipewiredir/jack.conf
+
+
+#lista de SampleRate
+samples="22050|32000|44100|48000|88200|96000|192000"
+#lista de FramePeriod
+frames="16|32|64|128|256|512|1024|2048|4096"
+
+#caixa de dialogo perguntando a configuração desejada
+pipewiresetting=$(zenity --title "PipeWire Config" \
+    --text="Samplerate Default = 48000\nFramePeriod Default = 1024" \
+    --forms \
+    --add-combo "Sample Rate" --add-combo "Frame Period"  \
+    --combo-values "${samples[@]}" --combo-values "${frames[@]}" \
+    --width=250)
+    
+#se apertar em cacnelar, sair
+if [ "$?" = "1" ]; then
+    exit 0
+fi
+
+#descobre o samplerate e frameperiod escolhidos
+samplerate=$(echo $pipewiresetting | cut -d "|" -f1)
+frameperiod=$(echo $pipewiresetting | cut -d "|" -f2)
+
+# echo $samplerate
+# echo $frameperiod
+
+#se estiver vaziu avisar e sair
+if [ -z "$samplerate" -o -z "$frameperiod" ]; then
+    zenity --error --text "Por Favor escolha valores validos.\nNão pode deixar em branco." --width=380
+    exit 1
+fi
+
+## PipeWire Sample Rate ##
+
+#tirar o # da frente do clockrate
+sed -i "/default.clock.rate/s/#//" $pipewireconf
+#trocar o clock rate
+sed -i "/default.clock.rate/s/=.*$/= $samplerate/" $pipewireconf
+
+## PipeWire Frame Period ##
+#tiar o # da frente do clockquantum
+sed -i "/default.clock.quantum/s/#//" $pipewireconf
+#trocar o clock quantum
+sed -i "/default.clock.quantum/s/=.*$/= $frameperiod/" $pipewireconf
+
+#aplicar configurações ao PipeWire
+systemctl restart --user pipewire.service
+systemctl restart --user pipewire-pulse.service
+
+## Jack config ##
+
+##pegar o samplerate do jack
+#jacksamplerate=$(jack_samplerate)
+##pegar o frameperiod do jack
+#jackbufsize=$(jack_bufsize)
+#
+##tiar o # da frente do node.latency
+#sed -i "/node.latency/s/#//" $jackconf
+#
+##trocar o clock quantum
+#sed -i "/node.latency/s/=.*$/= $frameperiod\/$samplerate/" $jackconf
+
+
