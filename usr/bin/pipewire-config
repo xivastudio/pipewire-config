@@ -40,9 +40,13 @@ samples="22050|32000|44100|48000|88200|96000|192000"
 #lista de FramePeriod
 frames="16|32|64|128|256|512|1024|2048|4096"
 
+atualSamples=$(grep 'default.clock.rate' $pipewireconf | awk '{print $3}')
+atualFrames=$(grep 'default.clock.quantum' $pipewireconf | grep -v limit | awk '{print $3}')
+
 #caixa de dialogo perguntando a configuração desejada
 pipewiresetting=$(zenity --title "PipeWire Config" \
-    --text="Samplerate Default = 48000\nFramePeriod Default = 1024" \
+    --window-icon="/usr/share/icons/hicolor/48x48/apps/pipewire.png" \
+    --text="Samplerate Default = 48000\nFramePeriod Default = 1024\n\nSamplerate Atual = $atualSamples\nFramePeriod Atual = $atualFrames\n"\
     --forms \
     --add-combo "Sample Rate" --add-combo "Frame Period"  \
     --combo-values "${samples[@]}" --combo-values "${frames[@]}" \
