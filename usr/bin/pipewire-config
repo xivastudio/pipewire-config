@@ -18,7 +18,7 @@ samples="22050|32000|44100|48000|88200|96000|192000"
 #lista de FramePeriod
 frames="16|32|64|128|256|512|1024|2048|4096"
 #lista BufferSize
-buffer="32|64|128|256|512|1024|2048|4096"
+# buffer="32|64|128|256|512|1024|2048|4096"
 
 atualSamples=$(grep 'default.clock.rate' $pipewireconf | awk '{print $3}')
 atualFrames=$(grep 'default.clock.quantum' $pipewireconf | grep -v limit | awk '{print $3}')
@@ -27,11 +27,15 @@ atualBufferSize=$(sed -n '/jack.properties/,/^$/p' $jackconf | grep node.latency
 #caixa de dialogo perguntando a configuração desejada
 pipewiresetting=$(zenity --title "PipeWire Config" \
     --window-icon="/usr/share/icons/hicolor/48x48/apps/pipewire.png" \
-    --text="Samplerate Default = 48000\nFramePeriod Default = 1024\nBufferSize Default = 1024\n\nSamplerate Atual = $atualSamples\nFramePeriod Atual = $atualFrames\nBufferSize Atual = $atualBufferSize"\
+    --text="Samplerate Default = 48000\nFramePeriod Default = 1024\n\nSamplerate Atual = $atualSamples\nFramePeriod Atual = $atualFrames"\
     --forms \
     --add-combo "Sample Rate" --add-combo "Frame Period" --add-combo "BufferSize" \
-    --combo-values "${samples[@]}" --combo-values "${frames[@]}" --combo-values "${buffer[@]}"\
+    --combo-values "${samples[@]}" --combo-values "${frames[@]}" \
     --width=250)
+    
+    #\nBufferSize Default = 1024
+    #\nBufferSize Atual = $atualBufferSize
+    #--combo-values "${buffer[@]}"
     
 #se apertar em cacnelar, sair
 if [ "$?" = "1" ]; then
@@ -41,7 +45,7 @@ fi
 #descobre o samplerate e frameperiod escolhidos
 samplerate=$(echo $pipewiresetting | cut -d "|" -f1)
 frameperiod=$(echo $pipewiresetting | cut -d "|" -f2)
-buffeSize=$(echo $pipewiresetting | cut -d "|" -f3)
+# buffeSize=$(echo $pipewiresetting | cut -d "|" -f3)
 
 #se estiver vaziu avisar e sair
 if [ -z "$samplerate" -o -z "$frameperiod" -o -z "$buffeSize" ]; then
@@ -63,9 +67,13 @@ sed -i "/default.clock.quantum/s/=.*$/= $frameperiod/" $pipewireconf
 
 ## Jack BufferSize ##
 #tiar o # da frente do node.latency
-sed -i '/jack.properties/!b;n;s/#//' $jackconf
+# sed -i '/jack.properties/!b;n;s/#//' $jackconf
 #trocar o node.latency
-sed -i "/jack.properties/!b;n;s/=.*/= $buffeSize\/$samplerate/" $jackconf
+# sed -i "/jack.properties/!b;n;s/=.*/= $buffeSize\/$samplerate/" $jackconf
+if [ -z "$(sed -n '/jack.properties/{n;p;}' $jackconf | grep '#')" ];then
+    sed -i '/jack.properties/!b;n;s/node/#node/' $jackconf
+fi
+
 
 #aplicar configurações ao PipeWire
 systemctl restart --user pipewire.service
