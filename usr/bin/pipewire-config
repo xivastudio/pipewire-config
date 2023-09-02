@@ -49,7 +49,8 @@ frameperiod=$(echo $pipewiresetting | cut -d "|" -f2)
 # buffeSize=$(echo $pipewiresetting | cut -d "|" -f3)
 
 #se estiver vaziu avisar e sair
-if [ -z "$samplerate" -o -z "$frameperiod" -o -z "$buffeSize" ]; then
+if [ -z "$samplerate" -o -z "$frameperiod" ]; then
+    #-o -z "$buffeSize"
     zenity --error --text "Por Favor escolha valores validos.\nNão pode deixar em branco." --width=380
     exit 1
 fi
