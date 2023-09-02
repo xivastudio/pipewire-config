@@ -29,12 +29,13 @@ pipewiresetting=$(zenity --title "PipeWire Config" \
     --window-icon="/usr/share/icons/hicolor/48x48/apps/pipewire.png" \
     --text="Samplerate Default = 48000\nFramePeriod Default = 1024\n\nSamplerate Atual = $atualSamples\nFramePeriod Atual = $atualFrames"\
     --forms \
-    --add-combo "Sample Rate" --add-combo "Frame Period" --add-combo "BufferSize" \
+    --add-combo "Sample Rate" --add-combo "Frame Period" \
     --combo-values "${samples[@]}" --combo-values "${frames[@]}" \
     --width=250)
     
     #\nBufferSize Default = 1024
     #\nBufferSize Atual = $atualBufferSize
+    #--add-combo "BufferSize"
     #--combo-values "${buffer[@]}"
     
 #se apertar em cacnelar, sair
